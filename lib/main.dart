@@ -1,15 +1,35 @@
-import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+import 'providers/cart_provider.dart';
+import 'TonBudget.dart';
+import 'total.dart';
+import 'aboutUs.dart';
 import 'splashscreen.dart';
+import 'core/theme/app_theme.dart';
+import 'core/routing/app_router.dart';
 
-
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const MyApp());
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint("Firebase init error: $e");
+  }
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 
@@ -36,26 +56,40 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: FutureBuilder<PermissionStatus>(
-        future: _permissionStatus,
-        builder: (BuildContext context, AsyncSnapshot<PermissionStatus> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            // Show a loading indicator while the permission status is being checked.
-            return const Center(child: CircularProgressIndicator());
-          } else {
-            if (snapshot.data == PermissionStatus.denied || snapshot.data == PermissionStatus.permanentlyDenied) {
-              // Exit the app if the user denies or permanently denies camera permission.
-              WidgetsBinding.instance!.addPostFrameCallback((_) => exit(0));
-              return const SizedBox();
-            } else {
-              // Show the splash screen if the camera permission is granted or restricted.
-              return const splashscreen();
-            }
-          }
-        },
-      ),
+    return FutureBuilder<PermissionStatus>(
+      future: _permissionStatus,
+      builder: (BuildContext context, AsyncSnapshot<PermissionStatus> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: Scaffold(body: Center(child: CircularProgressIndicator())),
+          );
+        } else if (snapshot.data == PermissionStatus.denied || snapshot.data == PermissionStatus.permanentlyDenied) {
+          return const MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: Scaffold(body: Center(child: Text("Camera permission is required"))),
+          );
+        } else {
+          return ValueListenableBuilder<ThemeMode>(
+            valueListenable: themeNotifier,
+            builder: (_, mode, __) {
+              return MaterialApp.router(
+                debugShowCheckedModeBanner: false,
+                themeMode: mode,
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                routerConfig: AppRouter.router,
+                builder: (context, child) {
+                  return Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: child!,
+                  );
+                },
+              );
+            },
+          );
+        }
+      },
     );
   }
 }
