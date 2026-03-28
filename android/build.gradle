@@ -14,11 +14,21 @@ subprojects {
 }
 
 subprojects { sub ->
-    sub.afterEvaluate {
+    if (sub.state.executed) {
         if (sub.hasProperty('android')) {
             sub.android {
                 if (namespace == null) {
                     namespace sub.group
+                }
+            }
+        }
+    } else {
+        sub.afterEvaluate {
+            if (sub.hasProperty('android')) {
+                sub.android {
+                    if (namespace == null) {
+                        namespace sub.group
+                    }
                 }
             }
         }
