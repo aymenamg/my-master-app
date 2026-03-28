@@ -21,9 +21,9 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build APK
-        # This command ignores the 'chmod' error and builds the APK directly
-        run: flutter build apk --debug --no-tree-shake-icons
+      - name: Build APK (Force)
+        # This ignores certain icon and configuration errors to finish the build
+        run: flutter build apk --debug --no-tree-shake-icons --no-pub
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
