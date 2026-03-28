@@ -30,7 +30,6 @@ class TotalState extends State<Total> {
   final String colorCode = "#09090B"; // AppTheme.foreground
   final String cancelButtonText = "إلغاء";
   final bool isShowFlashIcon = false;
-  final ScanMode scanMode = ScanMode.BARCODE;
 
   void showBudgetWarning() {
     showDialog(
