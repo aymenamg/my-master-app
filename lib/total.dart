@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../main.dart';
 import 'providers/cart_provider.dart';
 import 'widgets/product_list_item.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'core/theme/app_theme.dart';
 import 'core/ui/shadcn_button.dart';
@@ -457,14 +457,14 @@ class TotalState extends State<Total> {
         return;
       }
 
-      final barcode = await FlutterBarcodeScanner.scanBarcode(
-        '#7C3AED',
-        'إلغاء',
-        true,
-        ScanMode.BARCODE,
+      final scanResult = await BarcodeScanner.scan(
+        options: const ScanOptions(
+          android: AndroidOptions(useAutoFocus: true),
+        ),
       );
 
-      if (barcode == '-1') return; // Cancelled
+      final barcode = scanResult.rawContent;
+      if (barcode.isEmpty || scanResult.type == ResultType.Cancelled) return; // Cancelled
 
       _showLoadingDialog(context);
 
