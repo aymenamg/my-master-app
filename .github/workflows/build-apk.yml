@@ -16,12 +16,22 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          # We are using 3.16.0 because it supports the 'old' way your app is coded
-          flutter-version: '3.16.0' 
-          channel: 'stable'
+          channel: 'stable' # This gets the latest version (3.41+)
+          cache: true
+
+      - name: Fix Plugin Loader (The Solution)
+        # This deletes the old plugin loader file that causes the crash
+        run: rm -f android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java || true
 
       - name: Get dependencies
         run: flutter pub get
 
       - name: Build APK
+        # Added --no-tree-shake-icons for your Lottie animations
         run: flutter build apk --debug --no-tree-shake-icons
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-master-app-debug
+          path: build/app/outputs/flutter-apk/app-debug.apk
